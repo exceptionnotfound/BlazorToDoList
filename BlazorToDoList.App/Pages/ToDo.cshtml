@@ -29,7 +29,7 @@ else
                     <td><button onclick="@(() => RemoveTodo(item.ID))"><i class="oi oi-trash"></i></button></td>
                     <td>@item.DateCreated</td>
                     <td>@item.Description</td>
-                    <td>@item.IsComplete</td>
+                    <td><input type=checkbox onchange="@(() => ToggleToDo(item.ID))" /> @item.IsComplete</td>
                 </tr>
             }
         </tbody>
@@ -47,11 +47,19 @@ else
     IList<ToDoItem> items = new List<ToDoItem>();
     private string newItem;
 
+    /// <summary>
+    /// This method is responsible for loading the initial data the page requires.  We store this sample data
+    /// in a JSON file.
+    /// </summary>
+    /// <returns></returns>
     protected override async Task OnInitAsync()
     {
         items = await Http.GetJsonAsync<List<ToDoItem>>("sample-data/todoitems.json");
     }
 
+    /// <summary>
+    /// This method adds a new ToDo item.
+    /// </summary>
     private void AddTodo()
     {
         if (!string.IsNullOrWhiteSpace(newItem))
@@ -63,8 +71,15 @@ else
                 ID = Guid.NewGuid()
             });
 
-            newItem = string.Empty;
+            newItem = string.Empty; //We need to reset this string, otherwise the text box will still contain the value typed in.
         }
+    }
+
+    private void ToggleToDo(Guid id)
+    {
+        //First find the item
+        var todo = items.First(x => x.ID == id);
+        todo.IsComplete = !todo.IsComplete;
     }
 
     private void RemoveTodo(Guid id)
