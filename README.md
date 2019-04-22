@@ -1,0 +1,1 @@
+This project is the result of a blog post:  [Using Blazor to Build a Client-Side Single-Page App with .NET Core](https://exceptionnotfound.net/using-blazor-to-build-a-client-side-single-page-app-with-net-core/)
