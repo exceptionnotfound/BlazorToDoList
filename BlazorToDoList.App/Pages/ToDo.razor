@@ -1,5 +1,5 @@
 ﻿@page "/todo"
-@inject HttpClient Http
+@inherits BlazorToDoList.App.Pages.ToDoBase
 
 <h1>To-Do List</h1>
 
@@ -40,58 +40,4 @@ else
 {
     <input placeholder="A new ToDo item" bind="@newItem" />
     <button onclick="@AddTodo">Create</button>
-}
-
-
-@functions{
-    IList<ToDoItem> items = new List<ToDoItem>();
-    private string newItem;
-
-    /// <summary>
-    /// This method is responsible for loading the initial data the page requires.  We store this sample data
-    /// in a JSON file.
-    /// </summary>
-    /// <returns></returns>
-    protected override async Task OnInitAsync()
-    {
-        items = await Http.GetJsonAsync<List<ToDoItem>>("sample-data/todoitems.json");
-    }
-
-    /// <summary>
-    /// This method adds a new ToDo item.
-    /// </summary>
-    private void AddTodo()
-    {
-        if (!string.IsNullOrWhiteSpace(newItem))
-        {
-            items.Add(new ToDoItem()
-            {
-                DateCreated = DateTime.Now,
-                Description = newItem,
-                ID = Guid.NewGuid()
-            });
-
-            newItem = string.Empty; //We need to reset this string, otherwise the text box will still contain the value typed in.
-        }
-    }
-
-    private void ToggleToDo(Guid id)
-    {
-        //First find the item
-        var todo = items.First(x => x.ID == id);
-        todo.IsComplete = !todo.IsComplete;
-    }
-
-    private void RemoveTodo(Guid id)
-    {
-        items.Remove(items.First(x => x.ID == id));
-    }
-
-    class ToDoItem
-    {
-        public Guid ID { get; set; }
-        public string Description { get; set; }
-        public bool IsComplete { get; set; }
-        public DateTime DateCreated { get; set; }
-    }
 }
