@@ -17,8 +17,14 @@ else
         <thead>
             <tr>
                 <th>Remove</th>
-                <th>Date</th>
-                <th>Description</th>
+                <th>
+                    <span class="sort-link" onclick="@(() => SortTable("DateCreated"))">Date</span>
+                    <span class="fa @(GetSortStyle("DateCreated"))"></span>
+                </th>
+                <th>
+                    <span class="sort-link" onclick="@(() => SortTable("Description"))">Description</span>
+                    <span class="fa @(GetSortStyle("Description"))"></span>
+                </th>
                 <th>Is Complete</th>
             </tr>
         </thead>
@@ -46,6 +52,8 @@ else
 @functions{
     IList<ToDoItem> items = new List<ToDoItem>();
     private string newItem;
+    private bool IsSortedAscending;
+    private string CurrentSortColumn;
 
     /// <summary>
     /// This method is responsible for loading the initial data the page requires.  We store this sample data
@@ -85,6 +93,47 @@ else
     private void RemoveTodo(Guid id)
     {
         items.Remove(items.First(x => x.ID == id));
+    }
+
+    private string GetSortStyle(string columnName)
+    {
+        if(CurrentSortColumn != columnName)
+        {
+            return string.Empty;
+        }
+        if(IsSortedAscending)
+        {
+            return "fa-sort-up";
+        }
+        else
+        {
+            return "fa-sort-down";
+        }
+    }
+
+    private void SortTable(string columnName)
+    {
+        if(columnName != CurrentSortColumn)
+        {
+            //We need to force order by descending on the new column
+            items = items.OrderBy(x => x.GetType().GetProperty(columnName).GetValue(x, null)).ToList();
+            CurrentSortColumn = columnName;
+            IsSortedAscending = true;
+
+        }
+        else //Sorting against same column but in different direction
+        {
+            if(IsSortedAscending)
+            {
+                items = items.OrderByDescending(x => x.GetType().GetProperty(columnName).GetValue(x, null)).ToList();
+            }
+            else
+            {
+                items = items.OrderBy(x => x.GetType().GetProperty(columnName).GetValue(x, null)).ToList();
+            }
+
+            IsSortedAscending = !IsSortedAscending;
+        }
     }
 
     class ToDoItem

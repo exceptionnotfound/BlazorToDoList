@@ -96,6 +96,12 @@ app {
     color: red;
 }
 
+.sort-link{
+    cursor:pointer;
+    color:blue;
+    text-decoration:underline;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;
