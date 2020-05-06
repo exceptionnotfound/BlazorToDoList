@@ -1,5 +1,8 @@
 ﻿@page "/todo"
-@inject HttpClient Http
+
+@using BlazorToDoList.App.Services
+@using BlazorToDoList.App.Models
+@inject IToDoService ToDoService
 
 <h1>To-Do List</h1>
 
@@ -18,11 +21,11 @@ else
             <tr>
                 <th>Remove</th>
                 <th>
-                    <span class="sort-link" onclick="@(() => SortTable("DateCreated"))">Date</span>
+                    <span class="sort-link" @onclick=@(() => SortTable("DateCreated"))>Date</span>
                     <span class="fa @(GetSortStyle("DateCreated"))"></span>
                 </th>
                 <th>
-                    <span class="sort-link" onclick="@(() => SortTable("Description"))">Description</span>
+                    <span class="sort-link" @onclick=@(() => SortTable("Description"))>Description</span>
                     <span class="fa @(GetSortStyle("Description"))"></span>
                 </th>
                 <th>Is Complete</th>
@@ -31,12 +34,21 @@ else
         <tbody>
             @foreach (var item in items)
             {
-                <tr>
-                    <td><button onclick="@(() => RemoveTodo(item.ID))"><i class="oi oi-trash"></i></button></td>
-                    <td>@item.DateCreated</td>
-                    <td>@item.Description</td>
-                    <td><input type=checkbox onchange="@(() => ToggleToDo(item.ID))" /> @item.IsComplete</td>
-                </tr>
+            <tr style="@(item.IsComplete ? "text-decoration: line-through" : "")">
+                <td><button @onclick="(() => RemoveTodo(item.ID))"><i class="oi oi-trash"></i></button></td>
+                <td>@item.DateCreated</td>
+                <td>@item.Description</td>
+                <td>
+                    @if (item.IsComplete)
+                    {
+                        <input type=checkbox @onchange="(() => ToggleToDo(item.ID))" checked />
+                    }
+                    else
+                    {
+                        <input type=checkbox @onchange="(() => ToggleToDo(item.ID))" />
+                    }
+                </td>
+            </tr>
             }
         </tbody>
     </table>
@@ -44,13 +56,12 @@ else
 
 @if (items != null)
 {
-    <input placeholder="A new ToDo item" bind="@newItem" />
-    <button onclick="@AddTodo">Create</button>
+    <input placeholder="A new ToDo item" @bind="@newItem" />
+    <button @onclick="AddTodo">Create</button>
 }
 
-
-@functions{
-    IList<ToDoItem> items = new List<ToDoItem>();
+@code{
+    List<ToDoItem> items = new List<ToDoItem>();
     private string newItem;
     private bool IsSortedAscending;
     private string CurrentSortColumn;
@@ -60,9 +71,9 @@ else
     /// in a JSON file.
     /// </summary>
     /// <returns></returns>
-    protected override async Task OnInitAsync()
+    protected override void OnInitialized()
     {
-        items = await Http.GetJsonAsync<List<ToDoItem>>("sample-data/todoitems.json");
+        items = ToDoService.Get();
     }
 
     /// <summary>
@@ -72,12 +83,14 @@ else
     {
         if (!string.IsNullOrWhiteSpace(newItem))
         {
-            items.Add(new ToDoItem()
+            var newToDoItem = new ToDoItem()
             {
                 DateCreated = DateTime.Now,
                 Description = newItem,
                 ID = Guid.NewGuid()
-            });
+            };
+
+            items = ToDoService.Add(newToDoItem);
 
             newItem = string.Empty; //We need to reset this string, otherwise the text box will still contain the value typed in.
         }
@@ -85,23 +98,21 @@ else
 
     private void ToggleToDo(Guid id)
     {
-        //First find the item
-        var todo = items.First(x => x.ID == id);
-        todo.IsComplete = !todo.IsComplete;
+        items = ToDoService.Toggle(id);
     }
 
     private void RemoveTodo(Guid id)
     {
-        items.Remove(items.First(x => x.ID == id));
+        items = ToDoService.Delete(id);
     }
 
     private string GetSortStyle(string columnName)
     {
-        if(CurrentSortColumn != columnName)
+        if (CurrentSortColumn != columnName)
         {
             return string.Empty;
         }
-        if(IsSortedAscending)
+        if (IsSortedAscending)
         {
             return "fa-sort-up";
         }
@@ -113,7 +124,7 @@ else
 
     private void SortTable(string columnName)
     {
-        if(columnName != CurrentSortColumn)
+        if (columnName != CurrentSortColumn)
         {
             //We need to force order by descending on the new column
             items = items.OrderBy(x => x.GetType().GetProperty(columnName).GetValue(x, null)).ToList();
@@ -123,7 +134,7 @@ else
         }
         else //Sorting against same column but in different direction
         {
-            if(IsSortedAscending)
+            if (IsSortedAscending)
             {
                 items = items.OrderByDescending(x => x.GetType().GetProperty(columnName).GetValue(x, null)).ToList();
             }
@@ -134,13 +145,5 @@ else
 
             IsSortedAscending = !IsSortedAscending;
         }
-    }
-
-    class ToDoItem
-    {
-        public Guid ID { get; set; }
-        public string Description { get; set; }
-        public bool IsComplete { get; set; }
-        public DateTime DateCreated { get; set; }
     }
 }
