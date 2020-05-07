@@ -1,3 +1,4 @@
+using BlazorToDoList.App.Data;
 using BlazorToDoList.App.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -27,6 +28,7 @@ namespace BlazorToDoList.App
                     options.DetailedErrors = Convert.ToBoolean(Configuration["DetailedErrors"]);
                 });
 
+            services.AddSingleton<WeatherForecastService>();
             services.AddTransient<IFileService, FileService>();
             services.AddScoped<IToDoService, ToDoService>();
         }
