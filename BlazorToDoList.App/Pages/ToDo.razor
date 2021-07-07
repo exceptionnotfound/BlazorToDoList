@@ -22,11 +22,11 @@ else
                 <th>Remove</th>
                 <th>
                     <span class="sort-link" @onclick=@(() => SortTable("DateCreated"))>Date</span>
-                    <span class="fa @(GetSortStyle("DateCreated"))"></span>
+                    <span>@(GetSortStyle("DateCreated"))</span>
                 </th>
                 <th>
                     <span class="sort-link" @onclick=@(() => SortTable("Description"))>Description</span>
-                    <span class="fa @(GetSortStyle("Description"))"></span>
+                    <span>@(GetSortStyle("Description"))</span>
                 </th>
                 <th>Is Complete</th>
             </tr>
@@ -114,11 +114,11 @@ else
         }
         if (IsSortedAscending)
         {
-            return "fa-sort-up";
+            return "▲";
         }
         else
         {
-            return "fa-sort-down";
+            return "▼";
         }
     }
 
